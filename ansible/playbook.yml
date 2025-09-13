@@ -1,0 +1,71 @@
+---
+- name: Configure Web Server on Vagrant VM
+  hosts: all  # Runs on all hosts in the inventory file
+  become: yes # Run tasks with sudo privileges
+  
+  tasks:
+    # TASK 1: Update the package list (like running 'sudo apt update')
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    # TASK 2: Install packages needed to add new repositories
+    - name: Install required system packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    # TASK 3: Add Docker's official GPG key (to verify Docker packages)
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    # TASK 4: Add the stable Docker repository to our sources list
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+        state: present
+
+    # TASK 5: Install Docker Engine
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+
+    # TASK 6: Add the 'vagrant' user to the 'docker' group to run commands without sudo
+    - name: Add vagrant user to docker group
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+
+    # TASK 7: Ensure the Docker service is running and enabled on boot
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    # TASK 8: Copy our app code from the host machine to the VM
+    - name: Copy application code to VM
+      copy:
+        src: ../app/   # Path on your HOST machine
+        dest: /home/vagrant/app # Path on the GUEST VM
+
+    # TASK 9: Build the Docker image from the Dockerfile we copied
+    - name: Build the Docker image
+      command: docker build -t my-web-app:latest /home/vagrant/app
+
+    # TASK 10: Run a container from the image, mapping port 80 on the VM to port 80 in the container
+    - name: Run the web application container
+      docker_container:
+        name: my-web-app
+        image: my-web-app:latest
+        ports:
+          - "80:80" # host_port:container_port
+        state: started
