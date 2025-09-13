@@ -5,7 +5,7 @@ provider "aws" {
 
 # Create a Security Group (Firewall) for our EC2 instance
 resource "aws_security_group" "web_sg" {
-  name        = "allow_web_traffic"
+  name        = "allow_web_traffic_barsha"
   description = "Allow HTTP and SSH inbound traffic"
 
   ingress {
