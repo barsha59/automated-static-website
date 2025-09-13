@@ -1,62 +1,43 @@
-name: Deploy to AWS on Push  # Name of the workflow
+name: Deploy to AWS
 
-# Trigger this workflow on every push to the 'main' branch
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  deploy:  # This is the one and only job
-    runs-on: ubuntu-latest  # OS for the GitHub runner
-    environment: production # Optional: sets an environment for the job
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
 
     steps:
-    # Step 1: Checkout (download) the code from the repository
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Step 2: Configure AWS credentials using the secrets stored in GitHub
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1  # Using the Mumbai region
+        aws-region: ap-south-1
 
-    # Step 3: Set up Terraform on the GitHub runner
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # Step 4: Initialize & Apply Terraform to create the infrastructure
     - name: Terraform Init and Apply
       run: |
         cd terraform
         terraform init -input=false
         terraform apply -auto-approve -input=false
 
-    # Step 5: Generate the Ansible inventory file from Terraform's output
     - name: Generate Ansible Inventory
       run: |
         cd terraform
         echo "[web]" > ../ansible/inventory
         terraform output -raw public_ip >> ../ansible/inventory
-        echo "" >> ../ansible/inventory # Add a newline
-        # Append the connection variables from our template
+        echo "" >> ../ansible/inventory
         cat ../ansible/inventory.tpl >> ../ansible/inventory
-        # Display the generated file for logs
         cat ../ansible/inventory
 
-    # Step 6: Wait for SSH to become available on the new EC2 instance
-    - name: Wait for SSH
-      run: |
-        cd terraform
-        PUBLIC_IP=$(terraform output -raw public_ip)
-        until ssh -o StrictHostKeyChecking=no -i ~/.ssh/devops-intern-project.pem ubuntu@$PUBLIC_IP 'exit'; do
-          sleep 10
-          echo "Waiting for SSH to be ready..."
-        done
-
-    # Step 7: Run the Ansible playbook to configure the server and deploy the app
     - name: Run Ansible Playbook
       run: |
         cd ansible
