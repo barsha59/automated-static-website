@@ -33,7 +33,7 @@ resource "aws_security_group" "web_sg" {
 # Create an Elastic IP (your fixed public IP)
 resource "aws_eip" "web_eip" {
   instance = aws_instance.web.id
-  vpc      = true
+
 }
 
 # Create the EC2 instance (your server)
