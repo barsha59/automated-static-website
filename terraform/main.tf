@@ -38,7 +38,7 @@ resource "aws_eip" "web_eip" {
 
 # Create the EC2 instance (your server)
 resource "aws_instance" "web" {
-  ami                    = "ami-0fc5d935ebf8bc3bc" # Ubuntu 22.04 LTS in us-east-1
+  ami                    = "ami-0c6615d1e95c98aca"" # Ubuntu 22.04 LTS in us-east-1
   instance_type          = "t2.micro"              # Eligible for free tier
   vpc_security_group_ids = [aws_security_group.web_sg.id]
   key_name               = "devops-intern-project"
