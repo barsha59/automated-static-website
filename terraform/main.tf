@@ -1,6 +1,6 @@
 # Tell Terraform to use the AWS provider
 provider "aws" {
-  region = "ap-south-1" 
+  region = "ap-south-1" # Mumbai region
 }
 
 # Create a Security Group (Firewall) for our EC2 instance
@@ -33,21 +33,21 @@ resource "aws_security_group" "web_sg" {
 # Create an Elastic IP (your fixed public IP)
 resource "aws_eip" "web_eip" {
   instance = aws_instance.web.id
-
 }
 
 # Create the EC2 instance (your server)
 resource "aws_instance" "web" {
-  ami                    = "ami-0c6615d1e95c98aca"" # Ubuntu 22.04 LTS in us-east-1
-  instance_type          = "t2.micro"              # Eligible for free tier
+  ami                    = "ami-0c6615d1e95c98aca" # Ubuntu 22.04 LTS in ap-south-1
+  instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.web_sg.id]
-  key_name               = "devops-intern-project"
+  key_name               = "devops-intern-project" # MUST match your AWS Key Pair name!
 
   tags = {
     Name = "Web-Server-Nepal"
   }
 }
 
+# Output the public IP address of the server after creation
 output "public_ip" {
   description = "The public IP address of the web server"
   value       = aws_eip.web_eip.public_ip
