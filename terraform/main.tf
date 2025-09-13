@@ -48,7 +48,6 @@ resource "aws_instance" "web" {
   }
 }
 
-# Output the public IP address of the server after creation
 output "public_ip" {
   description = "The public IP address of the web server"
   value       = aws_eip.web_eip.public_ip
